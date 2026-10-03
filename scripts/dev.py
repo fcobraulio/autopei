@@ -67,8 +67,7 @@ def garantir_banco(url: str) -> None:
     """Cria o banco se ainda não existir (precisa de permissão CREATEDB)."""
     from sqlalchemy import create_engine, text
     from sqlalchemy.engine import make_url
-
-    from sqlalchemy.exc import OperationalError
+    from sqlalchemy.exc import OperationalError, ProgrammingError
 
     u = make_url(url)
     admin = create_engine(u.set(database="postgres"), isolation_level="AUTOCOMMIT")
@@ -79,7 +78,16 @@ def garantir_banco(url: str) -> None:
                  "Ele está rodando? Com Docker:  docker compose up -d db")
     with con:
         if not con.scalar(text("SELECT 1 FROM pg_database WHERE datname = :n"), {"n": u.database}):
-            con.execute(text(f'CREATE DATABASE "{u.database}"'))
+            try:
+                con.execute(text(f'CREATE DATABASE "{u.database}"'))
+            except ProgrammingError:
+                admin.dispose()
+                sys.exit(
+                    f"O usuário '{u.username}' do PostgreSQL não tem permissão para criar o banco "
+                    f"'{u.database}'.\nCrie-o uma vez como administrador do PostgreSQL e rode de novo:\n\n"
+                    f"    sudo -u postgres createdb -O {u.username} {u.database}\n\n"
+                    f"(ou dê a permissão:  sudo -u postgres psql -c \"ALTER USER {u.username} CREATEDB\")\n"
+                    "Com Docker:  docker compose exec db createdb -U autopei " + str(u.database))
             print(f"Banco {u.database} criado.")
     admin.dispose()
 

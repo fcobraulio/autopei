@@ -14,7 +14,14 @@ uv run python scripts/dev.py zerar --dev       # deixa o banco de desenvolviment
 uv run python scripts/dev.py zerar             # APAGA TUDO do banco principal (.env) e deixa pronto para começar do zero
 ```
 
-O modo de desenvolvimento usa um **banco separado**: o mesmo servidor do `DATABASE_URL`, com o nome terminado em `_dev` (por exemplo, `autopei_dev`). Ele é criado sozinho. Para usar outro banco, defina `AUTOPEI_DEV_DATABASE_URL` no `.env`. Assim, popular e testar **não mexem nos dados reais**.
+O modo de desenvolvimento usa um **banco separado**: o mesmo servidor do `DATABASE_URL`, com o nome terminado em `_dev` (por exemplo, `autopei_dev`). Ele é criado sozinho. Para usar outro banco, defina `AUTOPEI_DEV_DATABASE_URL` no `.env`.
+
+Se o seu usuário do PostgreSQL não puder criar bancos (erro *permission denied to create database*), crie o banco uma vez como administrador e rode de novo:
+
+```bash
+sudo -u postgres createdb -O autopei autopei_dev
+# com Docker: docker compose exec db createdb -U autopei autopei_dev
+``` Assim, popular e testar **não mexem nos dados reais**.
 
 Abra http://localhost:8501. Na tela de login há o seletor **Entrar rapidamente como…** (escolha a pessoa e clique em Entrar) e o formulário de usuário e senha.
 
