@@ -85,16 +85,53 @@ def respostas(s: Session, pei_id: int, componente_id: int | None = None) -> dict
     return {r.pergunta_id: r for r in s.scalars(q)}
 
 
+# ---------------------------------------------------------------------------
+# Opção "Outra (descrever…)": ao ser marcada, pede uma descrição, guardada em valor["outra"].
+# ---------------------------------------------------------------------------
+def eh_outra(opcao: str) -> bool:
+    o = (opcao or "").strip().lower()
+    return o.startswith("outra") or o.startswith("outro")
+
+
+def opcao_outra(pergunta: Pergunta) -> str | None:
+    if pergunta.tipo == "longa":
+        return None
+    return next((o for o in pergunta.opcoes or [] if eh_outra(o)), None)
+
+
+def marcou_outra(pergunta: Pergunta, valor) -> bool:
+    o = opcao_outra(pergunta)
+    if o is None:
+        return False
+    return o in valor if isinstance(valor, list) else valor == o
+
+
+def valor_legivel(pergunta: Pergunta, r: Resposta | None):
+    """Valor da resposta com "Outra (descrever abaixo)" trocado por "Outra: <descrição>"."""
+    v = (r.valor or {}).get("v") if r else None
+    o = opcao_outra(pergunta)
+    descricao = ((r.valor or {}).get("outra") or "").strip() if r else ""
+    if o is None or not descricao:
+        return v
+    rotulo = f"{o.split('(')[0].strip()}: {descricao}"
+    if isinstance(v, list):
+        return [rotulo if item == o else item for item in v]
+    return rotulo if v == o else v
+
+
 def salvar_resposta(s: Session, pei: Pei, pergunta: Pergunta, componente_id: int | None,
-                    valor, nada: bool, usuario_id: int) -> None:
+                    valor, nada: bool, usuario_id: int, outra: str = "") -> None:
     atual = respostas(s, pei.id, componente_id).get(pergunta.id)
     nada = bool(nada) and pergunta.tipo == "longa"
+    novo = {"v": valor}
+    if marcou_outra(pergunta, valor) and (outra or "").strip():
+        novo["outra"] = outra.strip()
     if atual is None:
         atual = Resposta(pei_id=pei.id, componente_id=componente_id, pergunta_id=pergunta.id, origem="")
         s.add(atual)
-    elif (atual.valor or {}).get("v") == valor and atual.nada_declarar == nada:
+    elif (atual.valor or {}) == novo and atual.nada_declarar == nada:
         return  # nada mudou: mantém autor e a marca de pré-preenchimento
-    atual.valor = {"v": valor}
+    atual.valor = novo
     atual.nada_declarar = nada
     atual.origem = ""  # foi revisada/alterada
     atual.usuario_id = usuario_id
@@ -114,7 +151,14 @@ def preenchida(r: Resposta | None) -> bool:
 
 def faltantes(s: Session, pei: Pei, etapa: str, componente_id: int | None = None) -> list[str]:
     resp = respostas(s, pei.id, componente_id)
-    return [p.enunciado for p in perguntas(s, etapa) if p.obrigatoria and not preenchida(resp.get(p.id))]
+    falta = []
+    for p in perguntas(s, etapa):
+        r = resp.get(p.id)
+        if p.obrigatoria and not preenchida(r):
+            falta.append(p.enunciado)
+        elif r and marcou_outra(p, (r.valor or {}).get("v")) and not ((r.valor or {}).get("outra") or "").strip():
+            falta.append(f"{p.enunciado} (descreva a opção “{opcao_outra(p)}”)")
+    return falta
 
 
 # ---------------------------------------------------------------------------

@@ -36,21 +36,33 @@ def renderizar(perguntas: list[Pergunta], resp: dict[int, Resposta], pei_id: int
             st.checkbox("Nada a declarar", value=bool(r and r.nada_declarar), key=k + "_nada",
                         disabled=bloqueado)
         elif p.tipo == "radio":
-            st.radio(rotulo, p.opcoes, index=p.opcoes.index(v) if v in p.opcoes else None,
-                     key=k, horizontal=len(p.opcoes) <= 4, disabled=bloqueado, help=ajuda)
+            atual = st.radio(rotulo, p.opcoes, index=p.opcoes.index(v) if v in p.opcoes else None,
+                             key=k, horizontal=len(p.opcoes) <= 4, disabled=bloqueado, help=ajuda)
+            _campo_outra(p, r, k, atual, bloqueado)
         elif p.tipo == "select":
-            st.selectbox(rotulo, p.opcoes, index=p.opcoes.index(v) if v in p.opcoes else None,
-                         key=k, placeholder="Selecione…", disabled=bloqueado, help=ajuda)
+            atual = st.selectbox(rotulo, p.opcoes, index=p.opcoes.index(v) if v in p.opcoes else None,
+                                 key=k, placeholder="Selecione…", disabled=bloqueado, help=ajuda)
+            _campo_outra(p, r, k, atual, bloqueado)
         elif p.tipo == "checkbox":
             marcados = v if isinstance(v, list) else []
             st.markdown(rotulo, help=ajuda)
             colunas = st.columns(2)
-            for i, opcao in enumerate(p.opcoes):
-                colunas[i % 2].checkbox(opcao, value=opcao in marcados, key=f"{k}_{i}",
-                                        disabled=bloqueado)
+            atual = [opcao for i, opcao in enumerate(p.opcoes)
+                     if colunas[i % 2].checkbox(opcao, value=opcao in marcados, key=f"{k}_{i}",
+                                                disabled=bloqueado)]
+            _campo_outra(p, r, k, atual, bloqueado)
         if r is not None and r.origem:
             st.caption(f":orange[↺ Resposta trazida do PEI de {r.origem}. Revise e ajuste se mudou.]")
         st.write("")
+
+
+def _campo_outra(p: Pergunta, r: Resposta | None, k: str, atual, bloqueado: bool) -> None:
+    """Quando a opção "Outra (descrever…)" está marcada, mostra o campo para descrevê-la."""
+    if not fluxo.marcou_outra(p, atual):
+        return
+    salvo = ((r.valor or {}).get("outra") or "") if r else ""
+    st.text_input(f"Descreva “{fluxo.opcao_outra(p).split('(')[0].strip()}” *", value=salvo, key=k + "_outra",
+                  disabled=bloqueado, placeholder="ex.: Transtorno do processamento auditivo central")
 
 
 def salvar(perguntas: list[Pergunta], pei: Pei, comp_id: int | None, usuario_id: int) -> None:
@@ -67,9 +79,10 @@ def salvar(perguntas: list[Pergunta], pei: Pei, comp_id: int | None, usuario_id:
             fluxo.salvar_resposta(s, pei, p, comp_id, texto or "", nada, usuario_id)
         elif p.tipo == "checkbox":
             marcados = [o for i, o in enumerate(p.opcoes) if ss.get(f"{k}_{i}")]
-            fluxo.salvar_resposta(s, pei, p, comp_id, marcados, False, usuario_id)
+            fluxo.salvar_resposta(s, pei, p, comp_id, marcados, False, usuario_id, ss.get(k + "_outra") or "")
         else:
-            fluxo.salvar_resposta(s, pei, p, comp_id, ss.get(k) or "", False, usuario_id)
+            fluxo.salvar_resposta(s, pei, p, comp_id, ss.get(k) or "", False, usuario_id,
+                                  ss.get(k + "_outra") or "")
     s.flush()
 
 
