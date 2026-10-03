@@ -1,0 +1,11 @@
+﻿nome;matricula;turma;data_nascimento;responsavel;perfil_nee;nee_resumo;situacao_2026_2;pei_2026_1;cadastrado_por;dias_na_etapa;observacao
+Ana Clara Bezerra;20261011001;INFO1V;2011-04-12;Rosângela Bezerra da Silva;tea;Transtorno do Espectro Autista (TEA), nível 1 de suporte;psicopedagogia;nao;auxiliar1;2;PEI novo: aguardando a Psicopedagogia
+Bruno Medeiros Dantas;20261011002;INFO1V;2010-09-30;Carlos Antônio Dantas;tdah;TDAH (apresentação combinada);psicopedagogia;sim;auxiliar2;5;Pré-preenchido com o PEI de 2026.1
+Camila Faria Souto;20251021003;ALI2M;2009-11-03;Joana Faria Souto;dislexia;Dislexia;etep;nao;gestora;3;"Psicopedagogia concluída; aguardando a ETEP"
+Davi Lucena Araújo;20241031004;TSI3N;2004-02-17;;baixa_visao;Deficiência visual (baixa visão);docente:2;nao;auxiliar1;6;Com os docentes: 2 de 5 concluídos (um rascunho salvo)
+Elisa Morais Galvão;20261011005;INFO1V;2011-01-25;Fernanda Morais Galvão;tag_tdah;Transtorno de Ansiedade Generalizada (TAG) e TDAH;docente:4;sim;auxiliar3;4;"Com os docentes: 4 de 5 concluídos; dois docentes cadastraram estudos individualizados"
+Fábio Nóbrega Lins;20251021006;ALI2M;2009-07-08;Marcos Nóbrega Lins;auditiva;Deficiência auditiva (perda moderada bilateral);correcao_etep;nao;gestora;1;Gestora devolveu à ETEP para correção
+Gabriela Azevedo Cunha;20241031007;TSI3N;2003-05-21;;tea;Transtorno do Espectro Autista (TEA), nível 1 de suporte;revisao;nao;auxiliar2;2;"Todas as etapas concluídas; aguardando a revisão do NAPNE"
+Heitor Silveira Maia;20251021008;ALI2M;2008-12-14;Luciana Silveira Maia;di;Deficiência intelectual leve;aprovado;nao;auxiliar1;1;Aprovado: DOCX pronto, aguardando registro no SUAP
+Isabela Pinheiro Rocha;20241031009;TSI3N;2005-08-02;;discalculia;Discalculia;registrado;nao;auxiliar3;9;Registrado no SUAP (DOCX disponível)
+João Victor Tavares;20261011010;INFO1V;2010-06-19;Sandra Tavares de Lima;tea_ah;TEA nível 1 com altas habilidades em lógica e matemática;registrado;sim;gestora;12;"Registrado no SUAP; pré-preenchido com o PEI de 2026.1"
