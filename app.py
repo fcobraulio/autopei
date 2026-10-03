@@ -21,6 +21,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+if config.DEV:
+    st.markdown("""<div style="position:fixed;top:0;left:0;right:0;z-index:999999;background:#B45309;
+        color:#fff;text-align:center;font-size:.8rem;font-weight:600;padding:2px 0;letter-spacing:.03em">
+        MODO DE DESENVOLVIMENTO — login sem SUAP liberado para todos os perfis</div>""",
+                unsafe_allow_html=True)
+
 db.init_db()
 sessao = db.SessionLocal()
 db.set_current(sessao)
@@ -91,6 +97,8 @@ try:
         if contexto.is_admin:
             papeis.insert(0, "Administrador(a)")
         via = "SUAP" if contexto.via == "suap" else "login local"
+        if config.DEV:
+            via += " (modo de desenvolvimento)"
         st.markdown(f"**{contexto.nome}**  \n<small>{' · '.join(papeis) or 'sem perfil'}<br>"
                     f"entrou via {via}</small>", unsafe_allow_html=True)
         if st.button("Sair", icon=":material/logout:", use_container_width=True):

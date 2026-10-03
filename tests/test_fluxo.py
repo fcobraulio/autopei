@@ -208,6 +208,44 @@ def test_regras_de_login(s):
     assert ctx.perfis == set() and ctx.docente and ctx.campus_id is None
 
 
+def test_modo_desenvolvimento_libera_login_local(s, monkeypatch):
+    from core import config
+
+    campus = s.query(Campus).one()
+    s.add(Acesso(campus_id=campus.id, matricula="gestora", perfil="gestor"))
+    s.add(Usuario(username="gestora", nome="Gestora", auth="suap", senha_hash=hash_senha("autopei")))
+    s.flush()
+    # fora do modo dev: gestor(a) só entra pelo SUAP
+    monkeypatch.setattr(config, "DEV", False)
+    with pytest.raises(auth.LoginError):
+        auth.login_local(s, "gestora", "autopei")
+    # no modo dev: entra com usuário e senha e mantém o perfil de gestor
+    monkeypatch.setattr(config, "DEV", True)
+    u = auth.login_local(s, "gestora", "autopei")
+    ctx = auth.montar_contexto(s, u.id, "local", None)
+    assert ctx.perfis == {"gestor"} and ctx.critico and ctx.docente
+    with pytest.raises(auth.LoginError):  # senha errada continua barrada
+        auth.login_local(s, "gestora", "errada")
+
+
+def test_populacao_de_desenvolvimento(s):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+    import dev
+
+    from core.models import Pei, Semestre
+
+    dev.popular()
+    s.expire_all()
+    s2 = s.query(Semestre).filter_by(codigo="2026.2").one()
+    status = sorted(p.status for p in s.query(Pei).filter_by(semestre_id=s2.id))
+    assert len(status) == 10
+    assert status.count("registrado") == 2 and status.count("aprovado") == 1 and status.count("docente") == 2
+    assert all(p.docx for p in s.query(Pei).filter(Pei.status.in_(["aprovado", "registrado"])))
+    assert s.query(Semestre).filter_by(codigo="2026.1").one().status == "encerrado"
+    bruno = next(p for p in s.query(Pei).filter_by(semestre_id=s2.id) if p.estudante.nome.startswith("Bruno"))
+    assert bruno.prefill_origem == "2026.1"
+
+
 def test_opcao_outra_pede_descricao_e_vai_para_o_docx(s):
     campus, sem, est, gestor, psico, etep, docentes = _cenario(s)
     pei = fluxo.criar_pei(s, est, sem, gestor.id, [("123", "")])
