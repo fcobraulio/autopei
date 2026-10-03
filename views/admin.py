@@ -224,7 +224,8 @@ def _sistema() -> None:
     st.markdown(f"""
 - **SUAP:** `{config.SUAP_URL}` · login OAuth (redirecionamento) · client_id {"configurado" if config.SUAP_CLIENT_ID else "**não configurado**"} · retorno em `{config.SUAP_REDIRECT_URI}`
 - **Banco:** `{db.engine.url.render_as_string(hide_password=True)}`
-- **Modo de desenvolvimento SUAP (aceita qualquer senha):** {"**ATIVADO – não use em produção!**" if config.SUAP_FAKE else "desativado"}
+- **Modo de desenvolvimento (AUTOPEI_DEV):** {"**ATIVADO – todos entram com usuário e senha. Não use em produção!**" if config.DEV else "desativado"}
+- **Simulador do SUAP (AUTOPEI_SUAP_FAKE):** {"**ATIVADO – não use em produção!**" if config.SUAP_FAKE else "desativado"}
 """)
     st.caption("Tarefas por código: `python scripts/gerenciar.py --help` (criar admin, campus, etc.).")
 

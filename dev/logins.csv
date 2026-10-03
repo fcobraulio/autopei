@@ -1,0 +1,23 @@
+﻿login;senha;nome;perfil;em_producao_entra_por;observacao
+admin;admin;Administrador(a) AutoPEI;Administrador(a);login e senha;Acesso a tudo, inclusive Administração
+gestora;autopei;Marta Fernandes Dantas;Gestor(a) NAPNE;SUAP;Aprova, registra, gerencia acessos e semestres
+auxiliar1;autopei;Lucas Batista Freire;Auxiliar (bolsista);SUAP;Cadastra estudantes e PEIs
+auxiliar2;autopei;Renata Oliveira Costa;Auxiliar (bolsista);SUAP;
+auxiliar3;autopei;Tiago Medeiros Brito;Auxiliar (bolsista);SUAP;
+psico1;autopei;Helena Duarte Queiroz;Psicopedagogia;login e senha;
+psico2;autopei;Patrícia Lemos Araújo;Psicopedagogia;login e senha;
+psico3;autopei;Sônia Regina Barreto;Psicopedagogia;login e senha;
+etep1;autopei;Cláudia Gurgel Nunes;ETEP;SUAP;Pedagoga
+etep2;autopei;Roberto Alves Fontes;ETEP;SUAP;Técnico em Assuntos Educacionais
+prof01;autopei;Francisco Lopes Bezerra;Docente;SUAP;"Lógica de Programação; Fundamentos de Informática"
+prof02;autopei;Adriana Maia Torres;Docente;SUAP;Língua Portuguesa I e II
+prof03;autopei;Marcelo Dantas Pinto;Docente;SUAP;Matemática I e II
+prof04;autopei;Juliana Costa Rêgo;Docente;SUAP;Física I
+prof05;autopei;Eduardo Silva Monteiro;Docente;SUAP;Química de Alimentos
+prof06;autopei;Larissa Freitas Cavalcanti;Docente;SUAP;Microbiologia de Alimentos
+prof07;autopei;Paulo Henrique Sales;Docente;SUAP;História II
+prof08;autopei;Beatriz Souto Medeiros;Docente;SUAP;"Programação Web; divide Banco de Dados com prof09"
+prof09;autopei;Rafael Guedes Amorim;Docente;SUAP;Banco de Dados (com prof08)
+prof10;autopei;Vanessa Lima Fontes;Docente;SUAP;Engenharia de Software
+prof11;autopei;Gustavo Araújo Neto;Docente;SUAP;Redes de Computadores
+prof12;autopei;Mônica Teixeira Lins;Docente;SUAP;Inglês Técnico
