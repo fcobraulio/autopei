@@ -7,6 +7,9 @@ Regras de acesso:
 * Docente: qualquer pessoa que entra pelo SUAP; vê os PEIs das disciplinas que leciona.
 * Psicopedagogia: conta local (usuário e senha) criada pelo gestor.
 * Administrador: conta local inicial ou matrícula SUAP marcada como administradora.
+
+Modo de desenvolvimento (AUTOPEI_DEV=1): qualquer pessoa com senha cadastrada entra com
+usuário e senha e recebe todos os seus perfis, como se tivesse entrado pelo SUAP.
 """
 from __future__ import annotations
 
@@ -33,12 +36,18 @@ def acessos(s: Session, username: str, campus_id: int | None = None) -> list[Ace
     return list(s.scalars(q))
 
 
+def via_completa(via: str) -> bool:
+    """True quando a sessão vale como login SUAP (todos os perfis valem)."""
+    return via == "suap" or config.DEV
+
+
 def login_local(s: Session, username: str, senha: str) -> Usuario:
     u = s.scalar(select(Usuario).where(Usuario.username == username.strip().lower()))
-    if not u or not u.ativo or u.auth != "local" or not verificar_senha(senha, u.senha_hash):
+    conta_ok = u is not None and (u.auth == "local" or (config.DEV and u.senha_hash))
+    if not u or not u.ativo or not conta_ok or not verificar_senha(senha, u.senha_hash):
         raise LoginError("Usuário ou senha inválidos.")
     perfis = {a.perfil for a in acessos(s, u.username)}
-    if not u.is_admin and "psicopedagogia" not in perfis:
+    if not config.DEV and not u.is_admin and "psicopedagogia" not in perfis:
         raise LoginError("O login com usuário e senha é exclusivo da Psicopedagogia e de "
                          "administradores. Use o botão “Entrar com SUAP”.")
     u.ultimo_login = datetime.now()
@@ -53,7 +62,7 @@ def login_suap(s: Session, dados: DadosSuap) -> Usuario:
         s.add(u)
     if not u.ativo:
         raise LoginError("Seu acesso ao AutoPEI está desativado. Procure o NAPNE do seu campus.")
-    if u.auth == "local":
+    if u.auth == "local" and not config.DEV:
         raise LoginError("Esta matrícula pertence a uma conta local. Use “Deseja entrar com login e senha?”.")
     u.nome = dados.nome or u.nome
     u.email = dados.email or u.email
@@ -83,7 +92,7 @@ class Contexto:
 
     @property
     def docente(self) -> bool:
-        return self.via == "suap"
+        return via_completa(self.via)
 
     @property
     def gestao(self) -> bool:  # painel, cadastro de PEI, disciplinas, devolver para correção
@@ -97,7 +106,7 @@ class Contexto:
 def campi_do_usuario(s: Session, u: Usuario, via: str) -> list[Campus]:
     if u.is_admin:
         return list(s.scalars(select(Campus).where(Campus.ativo).order_by(Campus.nome)))
-    ids = {a.campus_id for a in acessos(s, u.username) if via == "suap" or a.perfil not in PERFIS_SUAP}
+    ids = {a.campus_id for a in acessos(s, u.username) if via_completa(via) or a.perfil not in PERFIS_SUAP}
     if not ids:
         return []
     return list(s.scalars(select(Campus).where(Campus.id.in_(ids)).order_by(Campus.nome)))
@@ -114,7 +123,7 @@ def montar_contexto(s: Session, usuario_id: int, via: str, campus_id: int | None
     perfis = set()
     if campus_id:
         perfis = {a.perfil for a in acessos(s, u.username, campus_id)}
-        if via != "suap":  # gestor, auxiliar e ETEP só valem com login SUAP
+        if not via_completa(via):  # gestor, auxiliar e ETEP só valem com login SUAP
             perfis -= PERFIS_SUAP
     return Contexto(u.id, u.username, u.nome, u.is_admin, via, campus_id,
                     campus.nome if campus else "", perfis)

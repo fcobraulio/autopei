@@ -13,19 +13,20 @@ Feito com **Streamlit (Python)** e **PostgreSQL**, com dependências gerenciadas
 ## Sumário
 
 1. [Funcionalidades](#funcionalidades)
-2. [Perfis, login e permissões](#perfis-login-e-permissões)
-3. [Fluxo do PEI](#fluxo-do-pei)
-4. [Instalação com uv](#instalação-com-uv)
-5. [Configuração (.env)](#configuração-env)
-6. [Login pelo SUAP (OAuth)](#login-pelo-suap-oauth)
-7. [Primeiro acesso](#primeiro-acesso)
-8. [Administração por código](#administração-por-código)
-9. [Perguntas dos formulários](#perguntas-dos-formulários)
-10. [O documento DOCX](#o-documento-docx)
-11. [Estrutura do projeto](#estrutura-do-projeto)
-12. [Testes](#testes)
-13. [Segurança e LGPD](#segurança-e-lgpd)
-14. [Limitações conhecidas](#limitações-conhecidas)
+2. [Modo de desenvolvimento](#modo-de-desenvolvimento)
+3. [Perfis, login e permissões](#perfis-login-e-permissões)
+4. [Fluxo do PEI](#fluxo-do-pei)
+5. [Instalação com uv](#instalação-com-uv)
+6. [Configuração (.env)](#configuração-env)
+7. [Login pelo SUAP (OAuth)](#login-pelo-suap-oauth)
+8. [Primeiro acesso](#primeiro-acesso)
+9. [Administração por código](#administração-por-código)
+10. [Perguntas dos formulários](#perguntas-dos-formulários)
+11. [O documento DOCX](#o-documento-docx)
+12. [Estrutura do projeto](#estrutura-do-projeto)
+13. [Testes](#testes)
+14. [Segurança e LGPD](#segurança-e-lgpd)
+15. [Limitações conhecidas](#limitações-conhecidas)
 
 ---
 
@@ -44,6 +45,26 @@ Feito com **Streamlit (Python)** e **PostgreSQL**, com dependências gerenciadas
 - **Perguntas configuráveis** pelo administrador: resposta longa, escolha única, múltipla escolha e menu de seleção.
 - **DOCX** sem imagens (negrito, itálico, sublinhado, cores, maiúsculas/minúsculas e tabelas).
 - **Campus e semestre**: o sistema começa com **Currais Novos**; o administrador cadastra novos campi e seus gestores. O(a) gestor(a) encerra o semestre quando tudo estiver registrado.
+
+## Modo de desenvolvimento
+
+Para testar o sistema completo sem SUAP, com dados fictícios (22 pessoas de todos os perfis, 15 disciplinas, 3 turmas e 10 PEIs em todas as etapas, alguns com DOCX pronto):
+
+```bash
+uv run python scripts/dev.py iniciar    # recria o banco de desenvolvimento e abre o AutoPEI em modo dev
+```
+
+- **Ativar:** o comando acima liga o modo só naquela execução. Para deixar sempre ligado, coloque `AUTOPEI_DEV=1` no `.env`.
+- **Desativar:** feche o `scripts/dev.py iniciar` (Ctrl+C) e rode o AutoPEI normalmente (`uv run streamlit run app.py`), com `AUTOPEI_DEV=0` (ou ausente) no `.env`.
+- No modo dev, **todos os perfis entram com usuário e senha** (inclusive gestor, auxiliar, ETEP e docentes), há um seletor **Entrar rapidamente como…** e uma faixa laranja no topo de todas as páginas.
+- O modo dev usa um **banco separado** (`autopei_dev`), então não mexe nos dados reais. Logins e senhas em [`dev/logins.csv`](dev/logins.csv); detalhes e roteiro de teste em [`dev/README.md`](dev/README.md).
+
+Para **zerar tudo** e começar do zero (apaga todos os dados do banco do `.env` e recria campus, perguntas padrão e o administrador do `.env`):
+
+```bash
+uv run python scripts/dev.py zerar        # pede para digitar ZERAR antes de apagar
+uv run python scripts/dev.py zerar --dev  # o mesmo, no banco de desenvolvimento
+```
 
 ## Perfis, login e permissões
 
@@ -168,7 +189,9 @@ A imagem usa o `uv` e instala exatamente o que está no `uv.lock`. O PostgreSQL 
 | `SUAP_ME_ENDPOINTS` | rotas com os dados da pessoa logada | `/api/rh/eu/,/api/eu/` |
 | `AUTOPEI_SECRET_KEY` | chave para assinar o `state` do login | derivada das credenciais |
 | `AUTOPEI_ANEXO_MAX_MB` | tamanho máximo de cada anexo | `10` |
-| `AUTOPEI_SUAP_FAKE` | **somente desenvolvimento**: simulador do retorno do SUAP | `0` |
+| `AUTOPEI_DEV` | **somente desenvolvimento**: todos os perfis entram com usuário e senha (veja [Modo de desenvolvimento](#modo-de-desenvolvimento)) | `0` |
+| `AUTOPEI_DEV_DATABASE_URL` | banco usado por `scripts/dev.py` | servidor do `DATABASE_URL`, banco `<nome>_dev` |
+| `AUTOPEI_SUAP_FAKE` | **somente desenvolvimento**: simulador do retorno do SUAP | `0` (`1` se `AUTOPEI_DEV=1`) |
 
 ## Login pelo SUAP (OAuth)
 
@@ -242,7 +265,11 @@ autopei/
 ├── views/
 │   ├── login.py  inicio.py  peis.py  disciplinas.py  semestres.py  acessos.py
 │   ├── admin.py  perfil.py  pessoas.py  formulario.py  anexos.py  estudos.py  ui.py  nav.py
-├── scripts/gerenciar.py    # administração por linha de comando
+├── scripts/
+│   ├── gerenciar.py        # administração por linha de comando
+│   ├── dev.py              # modo de desenvolvimento: iniciar, popular e zerar o banco
+│   └── dev_conteudo.py     # respostas fictícias usadas para popular
+├── dev/                    # dados fictícios (CSV com logins, turmas, disciplinas, estudantes)
 ├── tests/test_fluxo.py
 ├── docs/                   # manual, fluxo (draw.io, PNG, Mermaid), exemplo de PEI
 └── Dockerfile  docker-compose.yml  .env.example
@@ -263,7 +290,8 @@ Os testes verificam:
 - que os anexos ficam fora do DOCX e que só as etapas de preenchimento anexam (laudos pela Psicopedagogia; a gestão não anexa);
 - os estudos individualizados dos docentes (vários por semana, quinzenal, horas fechadas, sem duplicar horário) e a tabela ou o aviso no DOCX;
 - o pré-preenchimento a partir do semestre anterior;
-- as regras de login (psicopedagogia local, ETEP só com SUAP, qualquer pessoa do SUAP como docente).
+- as regras de login (psicopedagogia local, ETEP só com SUAP, qualquer pessoa do SUAP como docente);
+- o modo de desenvolvimento (login com senha para todos os perfis só quando `AUTOPEI_DEV=1`) e a população completa do banco de desenvolvimento.
 
 ## Segurança e LGPD
 
@@ -271,7 +299,7 @@ O PEI contém **dados sensíveis de saúde de estudantes**, em geral menores de 
 - Use HTTPS.
 - Restrinja o acesso ao servidor e ao banco e faça backup cifrado (`pg_dump`).
 - Revise a cada semestre a lista de matrículas autorizadas.
-- **Nunca** ligue `AUTOPEI_SUAP_FAKE=1` em produção.
+- **Nunca** ligue `AUTOPEI_DEV=1` ou `AUTOPEI_SUAP_FAKE=1` em produção.
 
 ## Limitações conhecidas
 

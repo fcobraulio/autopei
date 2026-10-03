@@ -41,8 +41,14 @@ SUAP_REDIRECT_URI = os.getenv("SUAP_REDIRECT_URI", "http://localhost:8501/")
 SUAP_OAUTH_SCOPE = os.getenv("SUAP_OAUTH_SCOPE", "")  # vazio = escopos padrão da aplicação
 SUAP_ME_ENDPOINTS = _lista("SUAP_ME_ENDPOINTS", "/api/rh/eu/,/api/eu/")
 SUAP_TIMEOUT = int(os.getenv("SUAP_TIMEOUT", "15"))
+# --- MODO DE DESENVOLVIMENTO (NUNCA em produção) -------------------------------
+# AUTOPEI_DEV=1 libera o login com usuário e senha para TODOS os perfis (gestor, auxiliar,
+# ETEP e docente também), mostra um seletor de "entrar como" na tela de login e uma faixa
+# de aviso em todas as páginas. Veja scripts/dev.py e a pasta dev/.
+DEV = _bool("AUTOPEI_DEV", False)
 # SOMENTE PARA DESENVOLVIMENTO: simula o retorno do SUAP sem sair do AutoPEI.
-SUAP_FAKE = _bool("AUTOPEI_SUAP_FAKE", False)
+# Ligado por padrão no modo de desenvolvimento.
+SUAP_FAKE = _bool("AUTOPEI_SUAP_FAKE", DEV)
 # Chave para assinar o parâmetro "state" do OAuth.
 SECRET_KEY = os.getenv("AUTOPEI_SECRET_KEY", "") or (SUAP_CLIENT_SECRET + DATABASE_URL)
 

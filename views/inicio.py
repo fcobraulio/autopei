@@ -19,7 +19,7 @@ ROTULO_ENVIAR = {
 def _perfis_por_campus(c) -> dict[int, set[str]]:
     mapa: dict[int, set[str]] = {}
     for a in auth.acessos(db.s(), c.username):
-        if c.via == "suap" or a.perfil not in PERFIS_SUAP:
+        if auth.via_completa(c.via) or a.perfil not in PERFIS_SUAP:
             mapa.setdefault(a.campus_id, set()).add(a.perfil)
     return mapa
 
