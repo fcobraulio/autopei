@@ -21,7 +21,7 @@ from docx.shared import Cm, Pt, RGBColor
 from sqlalchemy.orm import Session
 
 from . import config
-from .fluxo import docentes_do_componente, estudos, perguntas, respostas, rotulo_componente
+from .fluxo import docentes_do_componente, estudos, perguntas, respostas, rotulo_componente, valor_legivel
 from .models import FREQUENCIAS, Pei, Pergunta, Resposta, Usuario, faixa_hora
 
 VERDE = RGBColor(0x1B, 0x5E, 0x20)
@@ -100,7 +100,7 @@ def _valor_texto(p: Pergunta, r: Resposta | None) -> tuple[list[str], bool]:
         return [], False
     if r.nada_declarar:
         return [p.texto_nada or "Nada a declarar."], True
-    v = (r.valor or {}).get("v")
+    v = valor_legivel(p, r)
     if isinstance(v, list):
         return [f"• {item}" for item in v], False
     texto = str(v or "").strip()

@@ -206,3 +206,27 @@ def test_regras_de_login(s):
     v = _suap(s, "555")
     ctx = auth.montar_contexto(s, v.id, "suap", None)
     assert ctx.perfis == set() and ctx.docente and ctx.campus_id is None
+
+
+def test_opcao_outra_pede_descricao_e_vai_para_o_docx(s):
+    campus, sem, est, gestor, psico, etep, docentes = _cenario(s)
+    pei = fluxo.criar_pei(s, est, sem, gestor.id, [("123", "")])
+    _responder(s, pei, "psicopedagogia", psico)
+    nee = next(p for p in fluxo.perguntas(s, "psicopedagogia") if fluxo.opcao_outra(p))
+    outra = fluxo.opcao_outra(nee)
+    # marcou "Outra" sem descrever: não deixa enviar
+    fluxo.salvar_resposta(s, pei, nee, None, [nee.opcoes[0], outra], False, psico.id)
+    s.flush()
+    assert any("descreva" in f for f in fluxo.faltantes(s, pei, "psicopedagogia"))
+    with pytest.raises(fluxo.FluxoError):
+        fluxo.enviar(s, pei, "psicopedagogia", psico)
+    # com a descrição, envia e o DOCX mostra "Outra: <descrição>"
+    fluxo.salvar_resposta(s, pei, nee, None, [nee.opcoes[0], outra], False, psico.id,
+                          "Transtorno do processamento auditivo central")
+    s.flush()
+    assert fluxo.faltantes(s, pei, "psicopedagogia") == []
+    assert fluxo.enviar(s, pei, "psicopedagogia", psico) == "etep"
+    texto = " ".join(c.text for t in Document(io.BytesIO(gerar_docx(s, pei))).tables
+                     for r in t.rows for c in r.cells)
+    assert "Outra: Transtorno do processamento auditivo central" in texto
+    assert "descrever abaixo" not in texto

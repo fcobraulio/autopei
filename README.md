@@ -223,6 +223,8 @@ uv run python scripts/gerenciar.py listar
 
 Em **Administração → Perguntas** dá para editar o texto, o tipo, as opções, a seção, a ordem, a obrigatoriedade, quem responde e o texto automático do “Nada a declarar”. Perguntas já respondidas não são apagadas, apenas desativadas.
 
+Toda opção que começa com **“Outra”** ou **“Outro”** (em escolha única, múltipla ou menu) abre, ao ser marcada, um campo para descrevê-la. A descrição é obrigatória para enviar a etapa e aparece no DOCX como “Outra: <descrição>”.
+
 ## O documento DOCX
 
 Feito para ser **copiado e colado no editor do SUAP**: sem imagens, cabeçalhos/rodapés de página ou caixas de texto, só parágrafos formatados e tabelas. Respostas “Nada a declarar” aparecem em itálico. **Os anexos não entram no documento.** A seção **Estudos individualizados** traz uma tabela (componente, docente, dia, horário, frequência e local/observação) com todos os horários cadastrados pelos docentes ou, se não houver nenhum, a frase “Este(a) estudante não tem nenhum estudo individualizado cadastrado pelos docentes neste período”. Cada componente aparece como **“código — disciplina”**, com os docentes. O DOCX aprovado fica guardado no banco. Veja o exemplo fictício em [`docs/exemplo_PEI_ficticio.docx`](docs/exemplo_PEI_ficticio.docx).

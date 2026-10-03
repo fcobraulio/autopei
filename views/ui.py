@@ -93,7 +93,9 @@ def valor_resposta_md(p: Pergunta, r: Resposta | None) -> str:
         return "_Não respondido._"
     if r.nada_declarar:
         return f"_{p.texto_nada or 'Nada a declarar.'}_"
-    v = (r.valor or {}).get("v")
+    from core.fluxo import valor_legivel
+
+    v = valor_legivel(p, r)
     if isinstance(v, list):
         return "\n".join(f"- {i}" for i in v) if v else "_Não respondido._"
     v = str(v or "").strip()
