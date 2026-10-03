@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: autopei
+      POSTGRES_USER: autopei
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autopei}
+    volumes:
+      - dados_autopei:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autopei"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://autopei:${POSTGRES_PASSWORD:-autopei}@db:5432/autopei
+    ports:
+      - "8501:8501"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  dados_autopei:

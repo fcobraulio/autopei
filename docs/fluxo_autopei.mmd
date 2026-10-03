@@ -1,0 +1,16 @@
+%% Fluxo do PEI no AutoPEI — abra em https://mermaid.live (gratuito) ou veja direto no GitHub/GitLab
+flowchart LR
+    A["NAPNE cadastra estudante<br/>+ códigos das disciplinas"] --> B["Psicopedagogia<br/>(uma por estudante)"]
+    B --> C["ETEP<br/>(uma por estudante)"]
+    C --> D1["Docente da disciplina 123"]
+    C --> D2["Docente da disciplina 456"]
+    C --> D3["Docente da disciplina 789"]
+    D1 --> R["Revisão NAPNE<br/>(quando TODOS concluírem)"]
+    D2 --> R
+    D3 --> R
+    R --> Q{"Está tudo certo?"}
+    Q -.->|"Não: volta só para quem<br/>precisa corrigir"| C
+    Q -->|Sim| AP["Gestor(a) aprova<br/>DOCX gerado"]
+    AP --> SU["Cola no SUAP e<br/>coleta assinaturas"]
+    SU --> RG["Registrado"]
+    linkStyle 9 stroke:#C62828,stroke-dasharray:4
